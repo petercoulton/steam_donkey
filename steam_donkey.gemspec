@@ -37,4 +37,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'thor', '~> 0.19'
   spec.add_dependency 'aws-sdk', '~> 2.6'
   spec.add_dependency 'to_regexp', '~> 0.2.1'
+  spec.add_dependency 'command_line_reporter', '>=3.0'
 end

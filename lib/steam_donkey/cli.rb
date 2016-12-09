@@ -1,6 +1,6 @@
 require 'thor'
-require 'steam_donkey/cli/ec2'
-require 'steam_donkey/cli/cloudformation'
+require 'steam_donkey/commands/ec2'
+require 'steam_donkey/commands/cloudformation'
 
 module SteamDonkey
   class CLI < Thor
