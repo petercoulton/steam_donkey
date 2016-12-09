@@ -31,7 +31,7 @@ module SteamDonkey
         @sort_columns   = parse_sort_columns sort || ''
         @filters        = parse_filters filters || ''
         @columns        = required_columns(parse_columns columns || '')
-        @columns_labels = columns.split(',')
+        @columns_labels = (columns || '').split(',')
 
         self.class.send(:include, CommandLineReporter) if @format == 'pretty'
       end
@@ -134,15 +134,19 @@ module SteamDonkey
 
       def select_column(column, instance)
         c = column.clone
-        case column[:name]
-          when /^Tags\./i
-            c[:value] = find_tag(instance, column[:name].split('.').last)
-          when /^State(\.Name)?$/i
-            c[:value] = instance.state.name
-          when /^State\.Code$/i
-            c[:value] = instance.state.code
-          else
-            c[:value] = instance.send(column[:name].underscore)
+        begin
+          case column[:name]
+            when /^Tags\./i
+              c[:value] = find_tag(instance, column[:name].split('.').last)
+            when /^State(\.Name)?$/i
+              c[:value] = instance.state.name
+            when /^State\.Code$/i
+              c[:value] = instance.state.code
+            else
+              c[:value] = instance.send(column[:name].underscore)
+          end
+        rescue
+          raise "Unknown column #{column[:name]}"
         end
         c
       end
