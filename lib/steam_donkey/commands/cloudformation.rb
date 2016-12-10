@@ -1,7 +1,8 @@
-require_relative '../../../lib/steam_donkey/command'
 
 module SteamDonkey
-  class Cloudformation < Command
+  class Cloudformation < Thor
+    include Thor::Actions
+
     default_task :list
 
     desc "delete", "List ec2 instances"

@@ -1,7 +1,7 @@
-require_relative '../../../lib/steam_donkey/command'
 
 module SteamDonkey
-  class Ec2 < Command
+  class Ec2 < Thor
+    include Thor::Actions
     default_task :list
 
     desc 'list', 'List ec2 instances'

@@ -4,7 +4,9 @@ require 'steam_donkey/commands/cloudformation'
 require 'steam_donkey/command'
 
 module SteamDonkey
-  class CLI < Command
+  class CLI < Thor
+    include Thor::Actions
+
     desc 'config', 'Create default steam donkey config'
     def config
       puts 'configurating...done'
