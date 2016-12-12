@@ -5,26 +5,26 @@ require 'command_line_reporter'
 
 module SteamDonkey
   module AWS
-    module VPC
+    module SG
       class Listing
         include SteamDonkey::AWS::ResourceListing
 
         def aliases
           [
-              { test: /^Name$/i, value: 'Tags.Name' },
-              { test: /^Id$/i, value: 'VpcId' }
+              { test: /^Name$/i, value: 'GroupName' },
+              { test: /^Id$/i, value: 'GroupId' }
           ]
         end
 
         def search
           ec2  = Aws::EC2::Client.new
-          vpcs = []
-          ec2.describe_vpcs.each do |response|
-            response.vpcs.each do |vpc|
-              vpcs << vpc
+          groups = []
+          ec2.describe_security_groups.each do |response|
+            response.security_groups.each do |group|
+              groups << group
             end
           end
-          vpcs
+          groups
         end
 
         def select_column(column, instance)

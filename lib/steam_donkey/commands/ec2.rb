@@ -9,24 +9,26 @@ module SteamDonkey
     method_option :raw,      :aliases => '-r', :default => false,    :desc => 'Toggle to display headings', :type => :boolean
     method_option :render_headings, :aliases => '-h', :default => true, :desc => 'Toggle to display headings', :type => :boolean
     method_option :format,   :aliases => '-o', :default => 'pretty', :desc => 'Output format', :enum => %w(pretty raw)
-    method_option :columns,  :aliases => '-c', :default => 'Name,PublicIpAddress,KeyName,Tags.OS,Tags.environment', :desc => 'Columns to display'
-    method_option :filters,  :aliases => '-f', :default => 'State=running',   :desc => 'Filters to apply'
+    method_option :columns,  :aliases => '-c', :default => 'Name,KeyName,Tags.environment,PublicIpAddress', :desc => 'Columns to display'
+    method_option :filter_columns, :aliases => '-f', :default => 'State=running', :desc => 'Filters to apply'
     method_option :sort,     :aliases => '-s', :default => 'LaunchTime=desc', :desc => 'Columns to sort by'
     map :ls => :list
     def list
-      headings = options[:render_headings]
+      show_headings = options[:render_headings]
       format = options[:format]
       if options[:raw]
-        headings = false
+        show_headings = false
         format = 'raw'
       end
-      begin
-        SteamDonkey::AWS::EC2::Listing.new(headings, format, options[:filters], options[:columns], options[:sort]).list
-      rescue Exception => msg
-        help
-        puts "Error: #{msg}"
-        exit 1
-      end
+      # begin
+        instances = SteamDonkey::AWS::EC2::Listing.new(options[:filter_columns], options[:columns], options[:sort])
+        output = SteamDonkey::Cli::Output.new(show_headings, format)
+        output.render(instances.column_labels, instances.list)
+      # rescue Exception => msg
+      #   help
+      #   puts "Error: #{msg}"
+      #   exit 1
+      # end
     end
   end
 end

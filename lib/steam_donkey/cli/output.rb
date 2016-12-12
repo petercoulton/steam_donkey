@@ -2,7 +2,7 @@ require 'command_line_reporter'
 
 module SteamDonkey
   module Cli
-    class Listing
+    class Output
       include CommandLineReporter
 
       def initialize(render_headings, format)
