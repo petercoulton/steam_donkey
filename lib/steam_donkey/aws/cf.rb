@@ -6,34 +6,36 @@ require_relative 'resource_listing.rb'
 
 module SteamDonkey
   module AWS
-    module SG
+    module CF
       class Listing
         include SteamDonkey::AWS::ResourceListing
 
         def aliases
           [
-              { test: /^Name$/i, value: 'GroupName' },
-              { test: /^Id$/i, value: 'GroupId' }
+              { test: /^Id$/i, value: 'StackId' },
+              { test: /^Name$/i, value: 'StackName' },
+              { test: /^Status/i, value: 'StackStatus' },
+              { test: /^StatusReason/i, value: 'StackStatusReason' },
           ]
         end
 
         def search
-          ec2  = Aws::EC2::Client.new
-          ec2.describe_security_groups.each do |response|
-            response.security_groups.each do |group|
-              group
+          cf  = Aws::CloudFormation::Client.new
+          cf.describe_stacks.map do |response|
+            response.stacks.map do |stack|
+              stack
             end
           end.flatten
         end
 
-        def select_column(column, instance)
+        def select_column(column, stack)
           begin
             c = column.clone
             case column[:name]
               when /^Tags\./i
-                c[:value] = find_tag(instance, column[:name].split('.').last)
+                c[:value] = find_tag(stack, column[:name].split('.').last)
               else
-                c[:value] = instance.send(column[:name].underscore)
+                c[:value] = stack.send(column[:name].underscore)
             end
             c
           rescue

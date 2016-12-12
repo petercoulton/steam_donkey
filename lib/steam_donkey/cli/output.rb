@@ -16,7 +16,7 @@ module SteamDonkey
             table do
               row :header => true  do
                 headings.each do |label|
-                  column label, :width => [max_width(rows, label), label.length].max + 2
+                  column label, :width => max_width(rows, label)+ 2
                 end
               end
 
@@ -44,7 +44,7 @@ module SteamDonkey
       end
 
       def max_width(results, label)
-        results.map do |result|
+        width = results.map do |result|
           value = result.detect { |f| f[:label] == label }[:value]
           if value.nil?
             0
@@ -53,7 +53,9 @@ module SteamDonkey
           else
             value.to_s.length
           end
-        end.max
+        end
+        width << label.length
+        width.max
       end
     end
   end
