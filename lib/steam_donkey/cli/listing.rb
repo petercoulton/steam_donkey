@@ -28,7 +28,7 @@ module SteamDonkey
                     if value.is_a? Time
                       value = value.iso8601.to_s
                     else
-                      value = '-' if value.empty?
+                      value = '-' if value.methods.include? :empty? and value.empty?
                     end
                     column value
                   end

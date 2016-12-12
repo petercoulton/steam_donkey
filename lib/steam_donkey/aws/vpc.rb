@@ -1,11 +1,28 @@
 require 'aws-sdk'
+require 'to_regexp'
 require_relative '../../../lib/steam_donkey/cli/listing'
+require 'command_line_reporter'
+
+class String
+  def underscore
+    self.gsub(/::/, '/').
+        gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2').
+        gsub(/([a-z\d])([A-Z])/, '\1_\2').
+        tr('-', '_').
+        downcase
+  end
+end
+
+module ReversedOrder
+  def <=>(other)
+    - super
+  end
+end
 
 module SteamDonkey
   module AWS
-    module Cloudformation
+    module VPC
       class Listing
-        include CommandLineReporter
 
         def initialize(headings, format, filters = '', columns = '', sort = '')
           @render_headings = headings
@@ -14,8 +31,6 @@ module SteamDonkey
           @filters         = parse_filters filters || ''
           @columns         = required_columns(parse_columns columns || '')
           @columns_labels  = (columns || '').split(',')
-
-          self.class.send(:include, CommandLineReporter) if @format == 'pretty'
         end
 
         def list
@@ -23,45 +38,43 @@ module SteamDonkey
           listing.render @columns_labels, search
         end
 
-        def search
-          stacks
-              .sort_by { |a| sort_stacks(a) }
-              .map(&self.method(:select_columns))
-              .reject(&self.method(:filtered_out?))
-              .map { |i| i.select { |c| c.has_key? :label } }
-        end
-
-        def stacks
-          cf     = Aws::CloudFormation::Client.new
-          stacks = []
-          cf.describe_stacks.each do |response|
-            response.stacks.each do |stack|
-              stacks << stack
-            end
-          end
-          stacks
-        end
-
-        def parse_sort_columns(sort_columns)
+        def parse_sort_columns sort_columns
           sort_column_map = []
           sort_columns.split(',').map(&:strip).each do |filter|
             column, sort_direction = filter.split('=')
-            name                   = case column
-                                       when /^Name$/i
-                                         'Tags.Name'
-                                       when /^Id$/i
-                                         'InstanceId'
-                                       when /^State(\.Name)?$/i
-                                         'State.Name'
-                                       else
-                                         column
-                                     end
-            sort                   = (sort_direction || 'asc').downcase
+            name         = case column
+                             when /^Name$/i
+                               'Tags.Name'
+                             when /^Id$/i
+                               'VpcId'
+                             else
+                               column
+                           end
+            sort = (sort_direction || 'asc').downcase
             raise "Unknown sort modifier #{sort_direction}" unless %w(asc desc).include? sort
 
             sort_column_map << { :name => name, :direction => sort }
           end
           sort_column_map
+        end
+
+        def search
+          all_instances
+              .sort_by { |a| sort_instances(a) }
+              .map(&self.method(:select_columns))
+              .reject(&self.method(:filtered_out?))
+              .map {|i| i.select {|c| c.has_key? :label }}
+        end
+
+        def sort_instances(a)
+          return [] if a.nil?
+          @sort_columns.map do |sort|
+            value = (select_column(sort, a)[:value] || '').to_s
+            if sort[:direction] == 'desc'
+              value = value.dup.extend(ReversedOrder)
+            end
+            value
+          end
         end
 
         def select_columns(instance)
@@ -72,47 +85,19 @@ module SteamDonkey
           columns
         end
 
-        def select_column(column, stack)
+        def select_column(column, instance)
           c = column.clone
           begin
             case column[:name]
               when /^Tags\./i
-                c[:value] = find_tag(stack, column[:name].split('.').last)
-              when /^State(\.Name)?$/i
-                c[:value] = stack.stack_status
-              when /^State\.Code$/i
-                c[:value] = stack.state.code
+                c[:value] = find_tag(instance, column[:name].split('.').last)
               else
-                c[:value] = stack.send(column[:name].underscore)
+                c[:value] = instance.send(column[:name].underscore)
             end
           rescue
             raise "Unknown column #{column[:name]}"
           end
           c
-        end
-
-        def max_width(results, label)
-          results.map do |result|
-            value = result.detect { |f| f[:label] == label }[:value]
-            if value.nil?
-              0
-            elsif value.is_a? Time
-              value.iso8601.to_s.length
-            else
-              value.to_s.length
-            end
-          end.max
-        end
-
-        def sort_stacks(a)
-          return [] if a.nil?
-          @sort_columns.map do |sort|
-            value = select_column(sort, a)[:value] || ''
-            if sort[:direction] == 'desc'
-              value = value.dup.extend(ReversedOrder)
-            end
-            value
-          end
         end
 
         def remove_filter_fields(instance)
@@ -142,14 +127,25 @@ module SteamDonkey
           end
         end
 
-        def find_tag(stack, column)
+        def find_tag(instance, column)
           name = column.downcase
-          tag  = stack.tags.find { |tag| tag.key.downcase == name }
+          tag  = instance.tags.find { |tag| tag.key.downcase == name }
           if tag != nil
             tag[:value]
           else
             nil
           end
+        end
+
+        def all_instances
+          ec2       = Aws::EC2::Client.new
+          instances = []
+          ec2.describe_vpcs.each do |response|
+            response.vpcs.each do |instance|
+              instances << instance
+            end
+          end
+          instances
         end
 
         def filtered_out?(instance)
@@ -181,11 +177,9 @@ module SteamDonkey
             column, test = filter.split('=')
             name         = case column
                              when /^Name$/i
-                               'StackName'
+                               'Tags.Name'
                              when /^Id$/i
-                               'InstanceId'
-                             when /^State(\.Name)?$/i
-                               'State.Name'
+                               'VpcId'
                              else
                                column
                            end
@@ -204,12 +198,7 @@ module SteamDonkey
             end
 
             if column =~ /^Id$/i
-              column_map << { :name => 'InstanceId', :label => column }
-              next
-            end
-
-            if column =~ /^State(\.Name)?$/i
-              column_map << { :name => 'State.Name', :label => column }
+              column_map << { :name => 'VpcId', :label => column }
               next
             end
 

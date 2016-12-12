@@ -71,7 +71,7 @@ module SteamDonkey
         def sort_instances(a)
           return [] if a.nil?
           @sort_columns.map do |sort|
-            value = select_column(sort, a)[:value] || ''
+            value = (select_column(sort, a)[:value] || '').to_s
             if sort[:direction] == 'desc'
               value = value.dup.extend(ReversedOrder)
             end
