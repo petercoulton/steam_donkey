@@ -21,9 +21,34 @@ module SteamDonkey
         format        = 'raw'
       end
       # begin
-      stacks   = SteamDonkey::AWS::CF::Listing.new(options[:filter_columns], options[:columns], options[:sort])
+      stacks   = SteamDonkey::AWS::CF::Stacks.new(options[:filter_columns], options[:columns], options[:sort])
       output = SteamDonkey::Cli::Output.new(show_headings, format)
       output.render(stacks.column_labels, stacks.list)
+      # rescue Exception => msg
+      #   help
+      #   puts "Error: #{msg}"
+      #   exit 1
+      # end
+    end
+
+    desc 'exports', 'List cloudformation exports'
+    method_option :raw, :aliases => '-r', :default => false, :desc => 'Toggle to display headings', :type => :boolean
+    method_option :render_headings, :aliases => '-h', :default => true, :desc => 'Toggle to display headings', :type => :boolean
+    method_option :format, :aliases => '-o', :default => 'pretty', :desc => 'Output format', :enum => %w(pretty raw)
+    method_option :columns, :aliases => '-c', :default => 'Name,Value', :desc => 'Columns to display'
+    method_option :filter_columns, :aliases => '-f', :default => '', :desc => 'Filters to apply'
+    method_option :sort, :aliases => '-s', :default => 'Name', :desc => 'Columns to sort by'
+    def exports
+      show_headings = options[:render_headings]
+      format        = options[:format]
+      if options[:raw]
+        show_headings = false
+        format        = 'raw'
+      end
+      # begin
+      exports   = SteamDonkey::AWS::CF::Exports.new(options[:filter_columns], options[:columns], options[:sort])
+      output = SteamDonkey::Cli::Output.new(show_headings, format)
+      output.render(exports.column_labels, exports.list)
       # rescue Exception => msg
       #   help
       #   puts "Error: #{msg}"
