@@ -34,8 +34,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'cucumber'
-  spec.add_development_dependency 'debase', '~> 0.2.2.beta9'
-  spec.add_development_dependency 'ruby-debug-ide', '~> 0.6.1.beta3'
 
 
   spec.add_dependency 'thor', '~> 0.19'
