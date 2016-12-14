@@ -120,6 +120,15 @@ i-0721bb9f71f8a6045,dev-cass-test-datanode,running
 i-029a8574fb8233c1b,rhill-ftp-chef-node,running
 ```
 
+### Raw 
+
+#### --raw
+
+```
+$ donkey ec2 ls --raw
+i-0721bb9f71f8a6045,dev-cass-test-datanode,running
+i-029a8574fb8233c1b,rhill-ftp-chef-node,running
+```
 
 ## Development
 
