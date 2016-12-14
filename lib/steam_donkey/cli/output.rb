@@ -16,7 +16,7 @@ module SteamDonkey
             table do
               row :header => true  do
                 headings.each do |label|
-                  column label, :width => max_width(rows, label)+ 2
+                  column label, :width => max_width(rows, label)+ 2, :color => 'blue'
                 end
               end
 

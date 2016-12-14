@@ -20,15 +20,16 @@ module SteamDonkey
         show_headings = false
         format        = 'raw'
       end
-      # begin
-      stacks   = SteamDonkey::AWS::CF::Stacks.new(options[:filter_columns], options[:columns], options[:sort])
-      output = SteamDonkey::Cli::Output.new(show_headings, format)
-      output.render(stacks.column_labels, stacks.list)
-      # rescue Exception => msg
-      #   help
-      #   puts "Error: #{msg}"
-      #   exit 1
-      # end
+
+      begin
+        stacks   = SteamDonkey::AWS::CF::Stacks.new(options[:filter_columns], options[:columns], options[:sort])
+        output = SteamDonkey::Cli::Output.new(show_headings, format)
+        output.render(stacks.column_labels, stacks.list)
+      rescue Exception => msg
+        help
+        puts "Error: #{msg}"
+        exit 1
+      end
     end
 
     desc 'exports', 'List cloudformation exports'
@@ -45,15 +46,16 @@ module SteamDonkey
         show_headings = false
         format        = 'raw'
       end
-      # begin
-      exports   = SteamDonkey::AWS::CF::Exports.new(options[:filter_columns], options[:columns], options[:sort])
-      output = SteamDonkey::Cli::Output.new(show_headings, format)
-      output.render(exports.column_labels, exports.list)
-      # rescue Exception => msg
-      #   help
-      #   puts "Error: #{msg}"
-      #   exit 1
-      # end
+      
+      begin
+        exports   = SteamDonkey::AWS::CF::Exports.new(options[:filter_columns], options[:columns], options[:sort])
+        output = SteamDonkey::Cli::Output.new(show_headings, format)
+        output.render(exports.column_labels, exports.list)
+      rescue Exception => msg
+        help
+        puts "Error: #{msg}"
+        exit 1
+      end
     end
   end
 end

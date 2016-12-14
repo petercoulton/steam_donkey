@@ -23,15 +23,15 @@ module SteamDonkey
 
       filters = options[:filter_columns] if filters.empty?
 
-      # begin
+      begin
         instances = SteamDonkey::AWS::EC2::Listing.new(filters, options[:columns], options[:sort])
         output = SteamDonkey::Cli::Output.new(show_headings, format)
         output.render(instances.column_labels, instances.list)
-      # rescue Exception => msg
-      #   help
-      #   puts "Error: #{msg}"
-      #   exit 1
-      # end
+      rescue Exception => msg
+        help
+        puts "Error: #{msg}"
+        exit 1
+      end
     end
   end
 end
