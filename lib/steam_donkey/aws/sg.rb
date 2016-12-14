@@ -2,6 +2,7 @@ require 'aws-sdk'
 require 'to_regexp'
 require_relative '../../../lib/steam_donkey/cli/output'
 require 'command_line_reporter'
+require_relative 'resource_listing.rb'
 
 module SteamDonkey
   module AWS
@@ -18,13 +19,11 @@ module SteamDonkey
 
         def search
           ec2  = Aws::EC2::Client.new
-          groups = []
           ec2.describe_security_groups.each do |response|
             response.security_groups.each do |group|
-              groups << group
+              group
             end
-          end
-          groups
+          end.flatten
         end
 
         def select_column(column, instance)

@@ -20,15 +20,16 @@ module SteamDonkey
         show_headings = false
         format = 'raw'
       end
-      # begin
-      vpcs = SteamDonkey::AWS::VPC::Listing.new(options[:filter_columns], options[:columns], options[:sort])
-      output = SteamDonkey::Cli::Output.new(show_headings, format)
-      output.render(vpcs.column_labels, vpcs.list)
-      # rescue Exception => msg
-      #   help
-      #   puts "Error: #{msg}"
-      #   exit 1
-      # end
+  
+      begin
+        vpcs = SteamDonkey::AWS::VPC::Listing.new(options[:filter_columns], options[:columns], options[:sort])
+        output = SteamDonkey::Cli::Output.new(show_headings, format)
+        output.render(vpcs.column_labels, vpcs.list)
+      rescue Exception => msg
+        help
+        puts "Error: #{msg}"
+        exit 1
+      end
     end
   end
 end

@@ -2,6 +2,7 @@ require 'aws-sdk'
 require 'to_regexp'
 require_relative '../../../lib/steam_donkey/cli/output'
 require 'command_line_reporter'
+require_relative 'resource_listing.rb'
 
 module SteamDonkey
   module AWS
@@ -18,13 +19,11 @@ module SteamDonkey
 
         def search
           ec2  = Aws::EC2::Client.new
-          vpcs = []
-          ec2.describe_vpcs.each do |response|
-            response.vpcs.each do |vpc|
-              vpcs << vpc
+          ec2.describe_vpcs.map do |response|
+            response.vpcs.map do |vpc|
+              vpc
             end
-          end
-          vpcs
+          end.flatten
         end
 
         def select_column(column, instance)

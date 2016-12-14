@@ -1,8 +1,8 @@
-require_relative 'resource_listing.rb'
 require 'aws-sdk'
 require 'to_regexp'
 require_relative '../../../lib/steam_donkey/cli/output'
 require 'command_line_reporter'
+require_relative 'resource_listing.rb'
 
 
 module SteamDonkey
@@ -24,15 +24,13 @@ module SteamDonkey
 
         def search
           ec2       = Aws::EC2::Client.new
-          instances = []
-          ec2.describe_instances.each do |response|
-            response.reservations.each do |reservation|
-              reservation.instances.each do |instance|
-                instances << instance
+          ec2.describe_instances.map do |response|
+            response.reservations.map do |reservation|
+              reservation.instances.map do |instance|
+                instance
               end
-            end
-          end
-          instances
+            end.flatten
+          end.flatten
         end
 
         def select_column(column, instance)
