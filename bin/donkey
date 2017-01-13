@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-set -o pipefail
-set -o errexit
-
-ruby -Ilib ./exe/donkey "${@}"

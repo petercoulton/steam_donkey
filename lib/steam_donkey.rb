@@ -1,1 +1,0 @@
-require 'steam_donkey/version'
