@@ -39,4 +39,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'aws-sdk', '~> 2.6'
   spec.add_dependency 'to_regexp', '~> 0.2.1'
   spec.add_dependency 'command_line_reporter', '~> 3.0'
+  spec.add_dependency 'colorize', '~> 0.8'
+  spec.add_dependency 'chronic', '~> 0.10'
+  spec.add_dependency 'commander', '~> 4'
 end

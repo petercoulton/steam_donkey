@@ -1,4 +1,5 @@
 require 'steam_donkey/aws/cf'
+require 'chronic'
 
 module SteamDonkey
   class Cf < Thor
@@ -22,7 +23,7 @@ module SteamDonkey
       end
 
       begin
-        stacks   = SteamDonkey::AWS::CF::Stacks.new(options[:filter_columns], options[:columns], options[:sort])
+        stacks = SteamDonkey::AWS::CF::Stacks.new(options[:filter_columns], options[:columns], options[:sort])
         output = SteamDonkey::Cli::Output.new(show_headings, format)
         output.render(stacks.column_labels, stacks.list)
       rescue Exception => msg
@@ -48,7 +49,7 @@ module SteamDonkey
       end
       
       begin
-        exports   = SteamDonkey::AWS::CF::Exports.new(options[:filter_columns], options[:columns], options[:sort])
+        exports = SteamDonkey::AWS::CF::Exports.new(options[:filter_columns], options[:columns], options[:sort])
         output = SteamDonkey::Cli::Output.new(show_headings, format)
         output.render(exports.column_labels, exports.list)
       rescue Exception => msg
@@ -56,6 +57,17 @@ module SteamDonkey
         puts "Error: #{msg}"
         exit 1
       end
+    end
+
+    desc 'events', 'List events'
+    method_option :stack_name, :aliases => '-s', :desc => 'Name of the stack'
+    method_option :follow, :aliases => '-f', :default => false, :desc => 'Follow events', :type => :boolean
+    method_option :since, :desc => 'Date/time to show events since', :default => "2 years ago", :type => :string
+    def events
+      since = Chronic.parse(options[:since], :context => :past)
+      throw "Unable to parse time #{options[:since]}" if since.nil?
+      events = SteamDonkey::AWS::CF::Events.new( :stack_name => options[:stack_name], :follow => options[:follow], :since => since)
+      events.list 
     end
   end
 end
