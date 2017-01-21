@@ -1,0 +1,5 @@
+= steam_donkey
+
+Generate this with
+    steam_donkey rdoc
+After you have described your command line interface
