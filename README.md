@@ -22,12 +22,26 @@ Or install it yourself as:
 
 ```
 $ donkey help
-Commands:
-  donkey cf              # Manage Cloudformation stacks
-  donkey ec2             # Manage EC2 instances
-  donkey help [COMMAND]  # Describe available commands or one specific command
-  donkey sg              # Manage Security Groups
-  donkey vpc             # Manage VPCs
+NAME
+    donkey - Tools and scripts for building and managing infrastructure on AWS
+
+SYNOPSIS
+    donkey [global options] command [command options] [arguments...]
+
+VERSION
+    0.0.1
+
+GLOBAL OPTIONS
+    --help        - Show this message
+    --profile=arg - AWS profile name (default: none)
+    --region=arg  - AWS region (default: none)
+    -v, --verbose -
+    --version     - Display the program version
+
+COMMANDS
+    cf   - Manage and view cloudformation stacks and templates
+    ec2  - Manage and view ec2 instances
+    help - Shows a list of commands or help for one command
 ```
 
 ### Selecting Resource Columns
@@ -144,5 +158,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/peterc
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
 

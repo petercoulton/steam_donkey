@@ -1,73 +1,77 @@
-require 'steam_donkey/aws/cf'
 require 'chronic'
 
-module SteamDonkey
-  class Cf < Thor
-    include Thor::Actions
-    default_task :list
+desc 'Manage and view cloudformation stacks and templates'
+command [:cf] do |cf|
 
-    desc 'list', 'List cloudformation stacks'
-    method_option :raw, :aliases => '-r', :default => false, :desc => 'Toggle to display headings', :type => :boolean
-    method_option :render_headings, :aliases => '-h', :default => true, :desc => 'Toggle to display headings', :type => :boolean
-    method_option :format, :aliases => '-o', :default => 'pretty', :desc => 'Output format', :enum => %w(pretty raw)
-    method_option :columns, :aliases => '-c', :default => 'Name,CreationTime,Status', :desc => 'Columns to display'
-    method_option :filter_columns, :aliases => '-f', :default => '', :desc => 'Filters to apply'
-    method_option :sort, :aliases => '-s', :default => 'CreationTime=desc,Name', :desc => 'Columns to sort by'
-    map :ls => :list
-    def list
-      show_headings = options[:render_headings]
-      format        = options[:format]
-      if options[:raw]
-        show_headings = false
-        format        = 'raw'
-      end
+  cf.desc 'List cloudformation stacks'
+  cf.command [:list, :ls] do |list|
 
-      begin
-        stacks = SteamDonkey::AWS::CF::Stacks.new(options[:filter_columns], options[:columns], options[:sort])
-        output = SteamDonkey::Cli::Output.new(show_headings, format)
-        output.render(stacks.column_labels, stacks.list)
-      rescue Exception => msg
-        help
-        puts "Error: #{msg}"
-        exit 1
-      end
+  	list.switch [:raw,      :r], :default_value => false, :negatable => false, :desc => "Output unformatted, useful when piping results to other commands"
+  	list.switch [:headings, :h], :default_value => false, :desc => "Toggle column headings"
+
+    list.flag [:filters, :f], :default_value => 'Status=!/DELETE_COMPLETE/', :desc => ""
+    list.flag [:columns, :c], :default_value => 'Name,CreationTime,Status', :desc => ""
+  	list.flag [:sort,    :s], :default_value => 'CreationTime=desc,Name', :desc => ""
+
+    list.flag [:output, :o], :default_value => 'pretty', :must_match => { "pretty"  => :pretty, "raw" => :raw }
+
+    list.action do |global_options, options, args|
+      listing_options = {
+        :filters => options[:filters],
+        :columns => options[:columns],
+        :sort    => options[:sort]
+      }
+
+      stack_listing = SteamDonkey::Cloudformation::StackListing.new(cf_client(global_options), listing_options)
+
+      output = SteamDonkey::Cli::Output.new true, options[:output]
+      output.render stack_listing.column_labels, stack_listing.list
     end
+  end
 
-    desc 'exports', 'List cloudformation exports'
-    method_option :raw, :aliases => '-r', :default => false, :desc => 'Toggle to display headings', :type => :boolean
-    method_option :render_headings, :aliases => '-h', :default => true, :desc => 'Toggle to display headings', :type => :boolean
-    method_option :format, :aliases => '-o', :default => 'pretty', :desc => 'Output format', :enum => %w(pretty raw)
-    method_option :columns, :aliases => '-c', :default => 'Name,Value', :desc => 'Columns to display'
-    method_option :filter_columns, :aliases => '-f', :default => '', :desc => 'Filters to apply'
-    method_option :sort, :aliases => '-s', :default => 'Name', :desc => 'Columns to sort by'
-    def exports
-      show_headings = options[:render_headings]
-      format        = options[:format]
-      if options[:raw]
-        show_headings = false
-        format        = 'raw'
-      end
-      
-      begin
-        exports = SteamDonkey::AWS::CF::Exports.new(options[:filter_columns], options[:columns], options[:sort])
-        output = SteamDonkey::Cli::Output.new(show_headings, format)
-        output.render(exports.column_labels, exports.list)
-      rescue Exception => msg
-        help
-        puts "Error: #{msg}"
-        exit 1
-      end
+  cf.desc 'List stack events'
+  cf.command [:events] do |events|
+
+    events.flag ['stack-name', :s], :arg_name => 'STACK_NAME', :required => true,  :desc => "Stack name"
+    events.switch ['follow', :f],   :default_value => false,   :negatable => false
+
+    events.action do |global_options, options, args|  
+      list_options = {
+        :follow     => options[:follow],
+        :stack_name => options[:'stack-name'],
+        :since      => Chronic.parse("2 years ago")
+      }
+
+      event_log = SteamDonkey::Cloudformation::EventLog.new(cf_client(global_options), list_options)
+      event_log.list
     end
+  end
 
-    desc 'events', 'List events'
-    method_option :stack_name, :aliases => '-s', :desc => 'Name of the stack'
-    method_option :follow, :aliases => '-f', :default => false, :desc => 'Follow events', :type => :boolean
-    method_option :since, :desc => 'Date/time to show events since', :default => "2 years ago", :type => :string
-    def events
-      since = Chronic.parse(options[:since], :context => :past)
-      throw "Unable to parse time #{options[:since]}" if since.nil?
-      events = SteamDonkey::AWS::CF::Events.new( :stack_name => options[:stack_name], :follow => options[:follow], :since => since)
-      events.list 
+
+  cf.desc 'List cloudformation exports'
+  cf.command [:exports] do |exports|
+
+    exports.switch [:raw,      :r], :default_value => false, :negatable => false, :desc => "Output unformatted, useful when piping results to other commands"
+    exports.switch [:headings, :h], :default_value => false, :desc => "Toggle column headings"
+
+    exports.flag [:filters, :f], :default_value => '', :desc => ""
+    exports.flag [:columns, :c], :default_value => 'Name,Value', :desc => ""
+    exports.flag [:sort,    :s], :default_value => 'Name', :desc => ""
+
+    exports.flag [:output, :o], :default_value => 'pretty', :must_match => { "pretty"  => :pretty, "raw" => :raw }
+
+    exports.action do |global_options, options, args|
+      listing_options = {
+        :filters => options[:filters],
+        :columns => options[:columns],
+        :sort    => options[:sort]
+      }
+
+      exports_listing = SteamDonkey::Cloudformation::ExportsListing.new(cf_client(global_options), listing_options)
+
+      output = SteamDonkey::Cli::Output.new true, options[:output]
+      output.render exports_listing.column_labels, exports_listing.list
     end
   end
 end
+

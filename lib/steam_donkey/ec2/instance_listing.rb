@@ -1,18 +1,16 @@
 require 'aws-sdk'
-require 'to_regexp'
-require_relative '../../../lib/steam_donkey/cli/output'
-require 'command_line_reporter'
-require_relative 'resource_listing.rb'
-
 
 module SteamDonkey
-  module AWS
-    module EC2
-      class Listing
-
-        include SteamDonkey::AWS::ResourceListing
+  module EC2
+    class InstanceListing
+      include SteamDonkey::ResourceListing
 
         attr_reader :column_labels
+
+        def initialize(client, options = {})
+          @client = client
+          init(options[:sort], options[:filters], options[:columns])
+        end
 
         def aliases
           [
@@ -23,8 +21,7 @@ module SteamDonkey
         end
 
         def search
-          ec2       = Aws::EC2::Client.new
-          ec2.describe_instances.map do |response|
+          @client.describe_instances.map do |response|
             response.reservations.map do |reservation|
               reservation.instances.map do |instance|
                 instance
@@ -54,4 +51,4 @@ module SteamDonkey
       end
     end
   end
-end
+

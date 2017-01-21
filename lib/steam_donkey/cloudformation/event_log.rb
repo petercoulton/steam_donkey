@@ -1,90 +1,13 @@
-require 'aws-sdk'
-require 'to_regexp'
-require_relative '../../../lib/steam_donkey/cli/output'
-require 'command_line_reporter'
-require_relative 'resource_listing.rb'
-require 'colorize'
-
 module SteamDonkey
-  module AWS
-    module CF
-      class Stacks
-        include SteamDonkey::AWS::ResourceListing
+  module Cloudformation
+    class EventLog
 
-        def aliases
-          [
-              { test: /^Id$/i, value: 'StackId' },
-              { test: /^Name$/i, value: 'StackName' },
-              { test: /^Status/i, value: 'StackStatus' },
-              { test: /^StatusReason/i, value: 'StackStatusReason' },
-          ]
+        def initialize(client, options)
+          @client = client
+          @options = options
+          @events_seen = []
         end
 
-        def search
-          cf = Aws::CloudFormation::Client.new
-          cf.describe_stacks.map do |response|
-            response.stacks.map do |stack|
-              stack
-            end
-          end.flatten
-        end
-
-        def select_column(column, stack)
-          begin
-            c = column.clone
-            case column[:name]
-              when /^Tags\./i
-                c[:value] = find_tag(stack, column[:name].split('.').last)
-              else
-                c[:value] = stack.send(column[:name].underscore)
-            end
-            c
-          rescue
-            raise "Unknown column,#{column[:name]}"
-          end
-        end
-      end
-
-      class Exports
-        include SteamDonkey::AWS::ResourceListing
-
-        def aliases
-          [
-              { test: /^StackId$/i, value: 'ExportingStackId' }
-          ]
-        end
-
-        def search
-          cf         = Aws::CloudFormation::Client.new
-          result     = []
-          exports    = cf.list_exports
-          begin
-            last_token = exports.next_token
-            exports.exports.map do |export|
-              result << export
-            end
-            exports = cf.list_exports({ :next_token => exports.next_token })
-          end while last_token != exports.next_token
-
-          result
-        end
-
-        def select_column(column, stack)
-          begin
-            c = column.clone
-            case column[:name]
-              when 'nil'
-              else
-                c[:value] = stack.send(column[:name].underscore)
-            end
-            c
-          rescue
-            raise "Unknown column #{column[:name]}"
-          end
-        end
-      end
-
-      class Events
         BOLD     = "[1m"
         BLACK    = "[30m"
         RED      = "[31m"
@@ -119,14 +42,7 @@ module SteamDonkey
           }
         end
 
-        def initialize(options)
-          @options = options
-          @events_seen = []
-          @widest_status = 0
-        end
-
         def list
-          puts @options[:since]
           printf("%s%-20s  %-44s  %-26s  %s%s\n",
             "\033[1m", 
             "Timestamp",
@@ -162,12 +78,8 @@ module SteamDonkey
           @options[:stack_name]
         end
 
-        def cf_client
-          @cf_client ||= Aws::CloudFormation::Client.new
-        end
-
         def stack_events
-          cf_client.describe_stack_events(:stack_name => stack_name)
+          @client.describe_stack_events(:stack_name => stack_name)
         end
 
         def new_events(response)
@@ -190,12 +102,7 @@ module SteamDonkey
           end
           STDOUT.flush
         end
-
-      end
+      
     end
   end
 end
-
-
-
-

@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'steam_donkey/cli'
-
-SteamDonkey::CLI.start ARGV
