@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    steam_donkey (0.0.1)
+    steam_donkey (0.2.0)
       aws-sdk (~> 2.6)
       chronic (~> 0.10)
       command_line_reporter (~> 3.0)
