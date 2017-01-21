@@ -4,6 +4,7 @@ require 'rubygems/package_task'
 require 'rdoc/task'
 require 'cucumber'
 require 'cucumber/rake/task'
+require "bundler/gem_tasks"
 Rake::RDocTask.new do |rd|
   rd.main = "README.rdoc"
   rd.rdoc_files.include("README.rdoc","lib/**/*.rb","bin/**/*")
@@ -42,3 +43,12 @@ Rake::TestTask.new do |t|
 end
 
 task :default => [:test,:features]
+
+task :install_gem do
+  puts "Uninstalling steam_donkey gem"
+  %x{gem uninstall steam_donkey --executables}
+  puts "Building steam_donkey gem"
+  %x{gem build ./steam_donkey.gemspec}
+  puts "Installing steam_donkey gem"
+  %x{gem install ./steam_donkey-0.1.0.gem}
+end
