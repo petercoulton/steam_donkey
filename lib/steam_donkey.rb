@@ -1,1 +1,12 @@
-require 'steam_donkey/version'
+require 'steam_donkey/version.rb'
+require 'steam_donkey/aws.rb'
+require 'steam_donkey/config.rb'
+require 'steam_donkey/resource_listing.rb'
+require 'steam_donkey/ec2/instance_listing.rb'
+require 'steam_donkey/cloudformation/stack_listing.rb'
+require 'steam_donkey/cloudformation/exports_listing.rb'
+require 'steam_donkey/cloudformation/event_log.rb'
+require 'steam_donkey/cloudformation/deploy_stack.rb'
+require 'steam_donkey/cloudformation/package.rb'
+require 'steam_donkey/cli/output.rb'
+

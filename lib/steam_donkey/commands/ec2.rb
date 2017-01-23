@@ -1,34 +1,31 @@
-require 'steam_donkey/aws/ec2'
+desc 'Manage and view ec2 instances'
+command [:ec2] do |ec2|
+  
+  ec2.desc 'List ec2 instances'
+  ec2.command [:list, :ls] do |list|
+    
+  	list.switch [:raw,      :r], :default_value => false, :negatable => false, :desc => "Output unformatted, useful when piping results to other commands"
+  	list.switch [:headings, :h], :default_value => false, :desc => "Toggle column headings"
 
-module SteamDonkey
-  class Ec2 < Thor
-    include Thor::Actions
-    default_task :list
+    list.flag [:filter,  :f], :default_value => 'State=running'
+    list.flag [:columns, :c], :default_value => 'Name,KeyName,Tags.environment,Tags.Owner,PublicIpAddress'
+  	list.flag [:sort,    :s], :default_value => 'LaunchTime=desc'
 
-    desc 'list', 'List ec2 instances'
-    method_option :raw,      :aliases => '-r', :default => false,    :desc => 'Toggle to display headings', :type => :boolean
-    method_option :render_headings, :aliases => '-h', :default => true, :desc => 'Toggle to display headings', :type => :boolean
-    method_option :format,   :aliases => '-o', :default => 'pretty', :desc => 'Output format', :enum => %w(pretty raw)
-    method_option :columns,  :aliases => '-c', :default => 'Name,KeyName,Tags.environment,PublicIpAddress', :desc => 'Columns to display'
-    method_option :filter_columns, :aliases => '-f', :default => 'State=running', :desc => 'Filters to apply'
-    method_option :sort,     :aliases => '-s', :default => 'LaunchTime=desc', :desc => 'Columns to sort by'
-    map :ls => :list
-    def list
-      show_headings = options[:render_headings]
-      format = options[:format]
-      if options[:raw]
-        show_headings = false
-        format = 'raw'
-      end
-      # begin
-        instances = SteamDonkey::AWS::EC2::Listing.new(options[:filter_columns], options[:columns], options[:sort])
-        output = SteamDonkey::Cli::Output.new(show_headings, format)
-        output.render(instances.column_labels, instances.list)
-      # rescue Exception => msg
-      #   help
-      #   puts "Error: #{msg}"
-      #   exit 1
-      # end
+    list.flag [:output, :o], :default_value => 'pretty', :must_match => %w(pretty raw)
+
+    list.action do |global_options, options, args|
+      listing_options = {
+        :filters => options[:filters],
+        :columns => options[:columns],
+        :sort    => options[:sort]
+      }
+
+      puts global_options.inspect
+
+      # instance_listing = SteamDonkey::EC2::InstanceListing.new(ec2_client(global_options), listing_options)
+
+      # output = SteamDonkey::Cli::Output.new(true, options[:output])
+      # output.render instance_listing.column_labels, instance_listing.list
     end
   end
 end

@@ -2,8 +2,6 @@
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/steam_donkey`. To experiment with that code, run `bin/console` for an interactive prompt.
 
-TODO: Delete this and the text above, and describe your gem
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -22,7 +20,129 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+$ donkey help
+NAME
+    donkey - Tools and scripts for building and managing infrastructure on AWS
+
+SYNOPSIS
+    donkey [global options] command [command options] [arguments...]
+
+VERSION
+    0.0.1
+
+GLOBAL OPTIONS
+    --help        - Show this message
+    --profile=arg - AWS profile name (default: none)
+    --region=arg  - AWS region (default: none)
+    -v, --verbose -
+    --version     - Display the program version
+
+COMMANDS
+    cf   - Manage and view cloudformation stacks and templates
+    ec2  - Manage and view ec2 instances
+    help - Shows a list of commands or help for one command
+```
+
+### Selecting Resource Columns
+
+You can select any resources column in either CamelCase or underscore.
+
+```
+$ donkey ec2 ls --columns Id,Name,launch_time
+Id                    Name                    State
+i-0721bb9f71f8a6045   dev-cass-test-datanode  running
+i-029a8574fb8233c1b   rhill-ftp-chef-node     running
+...
+```
+
+### Filtering Resources
+
+#### --filters 'Name=my-instance'
+
+Literal filters
+
+```
+$ donkey ec2 ls --filters Name=my-instance
+Id                    Name         State
+i-0721bb9f71f8a6045   my-instance  running
+```
+
+#### --filters 'Name=?/^dev-/'
+
+Regex filters
+
+```
+$ donkey ec2 ls --filters 'Name=?/^dev-/'
+Id                    Name                     State
+i-0721bb9f71f8a6045   dev-cass-test-datanode   running
+i-029a8574fb8233c1b   dev-rhill-ftp-chef-node  running
+...
+```
+
+#### --filters 'Name=!/^dev-/'
+
+Negative regex
+
+```
+$ donkey ec2 ls --filters 'Name=!/^dev-/'
+Id                    Name                      State
+i-0721bb9f71f8a6045   qa-cass-test-datanode     running
+i-029a8574fb8233c1b   prod-rhill-ftp-chef-node  running
+...
+```
+
+### Sorting
+
+#### --sort 'Name,Id'
+
+```
+$ donkey ec2 ls --sort 'LaunchTime,Name'
+Id                    Name                      State
+i-0721bb9f71f8a6045   qa-cass-test-datanode     running
+i-029a8574fb8233c1b   prod-rhill-ftp-chef-node  running
+...
+```
+
+#### --sort 'Name=desc,Id=asc'
+
+```
+$ donkey ec2 ls --sort 'LaunchTime,Name=desc,Id=asc'
+Id                    Name                      State
+i-0721bb9f71f8a6045   qa-cass-test-datanode     running
+i-029a8574fb8233c1b   prod-rhill-ftp-chef-node  running
+...
+```
+
+### Output Options
+
+#### --format pretty
+
+```
+$ donkey ec2 ls --format pretty
+Id                    Name                    State
+i-0721bb9f71f8a6045   dev-cass-test-datanode  running
+i-029a8574fb8233c1b   rhill-ftp-chef-node     running
+```
+
+#### --format raw
+
+```
+$ donkey ec2 ls --format pretty
+Id,Name,State
+i-0721bb9f71f8a6045,dev-cass-test-datanode,running
+i-029a8574fb8233c1b,rhill-ftp-chef-node,running
+```
+
+### Raw 
+
+#### --raw
+
+```
+$ donkey ec2 ls --raw
+i-0721bb9f71f8a6045,dev-cass-test-datanode,running
+i-029a8574fb8233c1b,rhill-ftp-chef-node,running
+```
 
 ## Development
 
@@ -32,7 +152,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/steam_donkey.
+Bug reports and pull requests are welcome on GitHub at https://github.com/petercoulton/steam_donkey.
 
 
 ## License
