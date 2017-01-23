@@ -20,10 +20,12 @@ command [:ec2] do |ec2|
         :sort    => options[:sort]
       }
 
-      instance_listing = SteamDonkey::EC2::InstanceListing.new(ec2_client(global_options), listing_options)
+      puts global_options.inspect
 
-      output = SteamDonkey::Cli::Output.new(true, options[:output])
-      output.render instance_listing.column_labels, instance_listing.list
+      # instance_listing = SteamDonkey::EC2::InstanceListing.new(ec2_client(global_options), listing_options)
+
+      # output = SteamDonkey::Cli::Output.new(true, options[:output])
+      # output.render instance_listing.column_labels, instance_listing.list
     end
   end
 end

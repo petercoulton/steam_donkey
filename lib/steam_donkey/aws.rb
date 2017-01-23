@@ -14,3 +14,7 @@ end
 def ec2_client(options)
   Aws::EC2::Client.new(client_options(options))
 end
+
+def s3_client(options)
+  Aws::S3::Client.new(client_options(options))
+end

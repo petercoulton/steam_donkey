@@ -47,7 +47,6 @@ command [:cf] do |cf|
     end
   end
 
-
   cf.desc 'List cloudformation exports'
   cf.command [:exports] do |exports|
 
@@ -71,6 +70,24 @@ command [:cf] do |cf|
 
       output = SteamDonkey::Cli::Output.new true, options[:output]
       output.render exports_listing.column_labels, exports_listing.list
+    end
+  end
+
+  cf.desc 'Package cloudformation template and upload to S3'
+  cf.arg_name 'template_path'
+  cf.command [:package] do |p|
+
+    p.flag [:bucket, :b], :desc => "Name of the S3 bucket to upload packaged templates to"
+    p.flag [:prefix, :p], :desc => "Prefix to prepend to uploaded templates"
+    p.flag [:template, :t], :desc => "Path to template to package and upload"
+
+    p.action do |global_options, options, args|
+      bucket_name = options[:bucket] || global_options[:rc][:cloudformation][:package]["bucketName"]
+      bucket_path_prefix = options[:prefix] || global_options[:rc][:cloudformation][:package]["bucketPathPrefix"]
+
+      package = SteamDonkey::Cloudformation::Package.new(s3_client(global_options), global_options[:verbose])
+
+      package.package options[:template], bucket_name, bucket_path_prefix
     end
   end
 end
