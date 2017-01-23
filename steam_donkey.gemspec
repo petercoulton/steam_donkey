@@ -24,4 +24,5 @@ spec = Gem::Specification.new do |s|
   s.add_runtime_dependency('chronic', '~> 0.10')
   s.add_runtime_dependency('to_regexp', '~> 0.2.1')
   s.add_runtime_dependency('command_line_reporter', '~> 3.0')
+  s.add_runtime_dependency('inifile', '~> 3.0')
 end

@@ -47,7 +47,6 @@ command [:cf] do |cf|
     end
   end
 
-
   cf.desc 'List cloudformation exports'
   cf.command [:exports] do |exports|
 
@@ -71,6 +70,32 @@ command [:cf] do |cf|
 
       output = SteamDonkey::Cli::Output.new true, options[:output]
       output.render exports_listing.column_labels, exports_listing.list
+    end
+  end
+
+  cf.desc 'Package cloudformation template and upload to S3'
+  cf.command [:package] do |p|
+
+    p.flag [:template, :t], :required => true, :desc => "Path to template to package and upload"
+    p.flag [:bucket, :b], :desc => "Name of the S3 bucket to upload packaged templates to"
+    p.flag [:prefix, :p], :desc => "Prefix to prepend to uploaded templates"
+    p.switch ['launch-console', :l], :default_value => false, :negatable => false, :desc => "Launch CloudFormation console with uploaded template"
+    p.switch ['dry-run', :d], :default_value => false, :negatable => false
+    p.switch [:quiet, :q], :default_value => false, :negatable => false
+
+    p.action do |global_options, options, args|
+      bucket_name = options[:bucket] || global_options[:rc][:cloudformation][:package]["bucketName"]
+      bucket_path_prefix = options[:prefix] || global_options[:rc][:cloudformation][:package]["bucketPathPrefix"]
+
+      package = SteamDonkey::Cloudformation::Package.new(s3_client(global_options), options[:quiet], options['dry-run'])
+
+      template_url = package.package options[:template], bucket_name, bucket_path_prefix
+
+      puts template_url unless options[:quiet]
+
+      if options['launch-console']
+        `open https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?templateURL=#{template_url}`
+      end
     end
   end
 end

@@ -2,6 +2,7 @@
 require 'gli'
 begin # XXX: Remove this begin/rescue before distributing your app
 require 'steam_donkey'
+require 'inifile'
 rescue LoadError
   STDERR.puts "In development, you need to use `bundle exec bin/steam_donkey` to run your app"
   STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
@@ -20,7 +21,7 @@ subcommand_option_handling :normal
 arguments :strict
 # hide_commands_without_desc true
 
-switch [:v, :verbose], :negatable => false
+switch [:v, :verbose], :negatable => false, :desc => "Toggle verbose output"
 
 flag :profile, :desc => "AWS profile name"
 flag :region,  :desc => "AWS region"
@@ -28,6 +29,7 @@ flag :region,  :desc => "AWS region"
 commands_from "steam_donkey/commands"
 
 pre do |global, command, options, args|
+	SteamDonkey::Config.load('~/.donkeyrc', global)
   true
 end
 
