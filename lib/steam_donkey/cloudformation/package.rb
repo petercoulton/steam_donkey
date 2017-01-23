@@ -71,9 +71,10 @@ module SteamDonkey
     end
 
     class Package
-      def initialize(client, verbose)
+      def initialize(client, quiet, dry_run)
         @client = client
-        @verbose = verbose || false 
+        @quiet = quiet || false 
+        @dry_run = dry_run || false
       end
 
       def package(path, bucket, prefix)
@@ -83,16 +84,15 @@ module SteamDonkey
         root_template = Template.new(template_dir, template_name)
 
         root_template.templates.each do |template|
-          puts "Uploading s3://#{bucket}/#{prefix}/#{template.relative_path(template_dir)}" if @verbose
-          # @client.put_object({
-          #   body: template.packaged_template(bucket, prefix, template_dir),
-          #   bucket: bucket,
-          #   key: "#{prefix}/#{template.relative_path(template_dir)}"
-          # })
+          puts "Uploading s3://#{bucket}/#{prefix}/#{template.relative_path(template_dir)}" unless @quiet
+          @client.put_object({
+            body: template.packaged_template(bucket, prefix, template_dir),
+            bucket: bucket,
+            key: "#{prefix}/#{template.relative_path(template_dir)}"
+          }) unless @dry_run
         end
 
-        puts "https://s3-eu-west-1.amazonaws.com/#{bucket}/#{prefix}/#{root_template.name}"
-
+        "https://s3-eu-west-1.amazonaws.com/#{bucket}/#{prefix}/#{root_template.name}"
       end
 
     end
